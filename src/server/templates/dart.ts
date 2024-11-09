@@ -217,7 +217,7 @@ class EnumDartConstruct implements DartType, Declarable {
   }
 
   generateDeclaration(): string {
-    return `enum ${formatForDartClassName(this.originalName)} {
+    return `enum ${formatForDartClassName(this.originalName)}${this.comment !== null ? ' implements Translatable ' : ' '}{
 ${this.values.map((v) => `  ${formatForDartPropertyName(v)}`).join(',\n')};
 
   String toJson() {
