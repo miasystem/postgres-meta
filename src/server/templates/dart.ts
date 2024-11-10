@@ -399,6 +399,22 @@ class ClassDartConstruct implements Declarable {
       .join(',')}
     );
   }
+
+  ${this.className} copyWith({${this.columns
+    .map((column) => {
+      return `
+    ${new NullDartType(this.ptdMap[column.format][1]).generateType()} ${formatForDartPropertyName(column.name)}`
+    })
+    .join(',')}
+  }) {
+    return ${this.className}(${this.columns
+    .map((column) => {
+      return `
+      ${formatForDartPropertyName(column.name)}: ${formatForDartPropertyName(column.name)} ?? this.${formatForDartPropertyName(column.name)}`
+    })
+    .join(',')}
+    );
+  }
 ${
   this.operations.indexOf('Insert') !== -1
     ? `
