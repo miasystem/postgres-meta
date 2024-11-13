@@ -213,7 +213,7 @@ class EnumDartConstruct implements DartType, Declarable {
   }
 
   generateJsonDecoding(inputParameter: string): string {
-    return `${formatForDartClassName(this.originalName)}.values.byName(${inputParameter})`
+    return `${formatForDartClassName(this.originalName)}.fromJson(${inputParameter})`
   }
 
   generateDeclaration(): string {
@@ -230,6 +230,19 @@ ${this.values
   )
   .join('\n')}
     }
+  }
+
+  factory ${formatForDartClassName(this.originalName)}.fromJson(String name) {
+    switch(name) {
+${this.values
+  .map(
+    (v) =>
+      `     case '${v}':
+        return ${formatForDartClassName(this.originalName)}.${formatForDartPropertyName(v)};`
+  )
+  .join('\n')}
+    }
+    throw ArgumentError.value(name, "name", "No enum value with that name");
   }
 
 ${
