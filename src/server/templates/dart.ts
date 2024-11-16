@@ -326,6 +326,22 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
     .join(',')}
   );
 
+  ${this.name} copyWith({${this.postgresType.attributes
+    .map((attr) => {
+      return `
+    ${new NullDartType(this.ptdMap[attr.type_id][1]).generateType()} ${formatForDartPropertyName(attr.name)}`
+    })
+    .join(',')}
+  }) {
+    return ${this.name}(${this.postgresType.attributes
+    .map((attr) => {
+      return `
+      ${formatForDartPropertyName(attr.name)}: ${formatForDartPropertyName(attr.name)} ?? this.${formatForDartPropertyName(attr.name)}`
+    })
+    .join(',')}
+    );
+  }
+
   factory ${this.name}.fromJson(Map<String, dynamic> jsonObject) {
     return ${this.name}(${this.postgresType.attributes
       .map((attr) => {
