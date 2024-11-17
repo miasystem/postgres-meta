@@ -109,7 +109,7 @@ class ListDartType implements DartType {
   }
 
   generateJsonDecoding(inputParameter: string): string {
-    return `(${inputParameter} as List<dynamic>).map((v) => ${this.containedType.generateJsonDecoding(inputParameter)}).toList()`
+    return `(${inputParameter} as List<dynamic>).map((v) => ${this.containedType.generateJsonDecoding('v')}).toList()`
   }
 }
 
