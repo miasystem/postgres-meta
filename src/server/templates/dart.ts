@@ -105,7 +105,7 @@ class ListDartType implements DartType {
   }
 
   generateJsonEncoding(): string {
-    return this.containedType.generateJsonEncoding()
+    return `.map((v) => v${this.containedType.generateJsonEncoding()}).toList()`
   }
 
   generateJsonDecoding(inputParameter: string): string {
@@ -154,7 +154,7 @@ class MapDartType implements DartType {
   }
 
   generateJsonDecoding(inputParameter: string): string {
-    return inputParameter
+    return `${inputParameter} as Map<String, dynamic>`
   }
 }
 
@@ -209,7 +209,7 @@ class EnumDartConstruct implements DartType, Declarable {
   }
 
   generateJsonEncoding(): string {
-    return ''
+    return '.toJson()'
   }
 
   generateJsonDecoding(inputParameter: string): string {
@@ -355,7 +355,7 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
   }
 
   generateJsonEncoding(): string {
-    return ''
+    return '.toJson()'
   }
 
   generateJsonDecoding(inputParameter: string): string {
