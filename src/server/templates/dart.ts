@@ -8,7 +8,6 @@ import type {
 } from '../../lib/index.js'
 import type { GeneratorMetadata } from '../../lib/generators.js'
 import { Console } from 'console'
-import { P } from 'pino'
 const console = new Console(process.stderr)
 
 type Operation = 'Select' | 'Insert' | 'Update'
@@ -158,50 +157,13 @@ class MapDartType implements DartType {
   }
 }
 
-const SUPPORTED_LOCALES = ['en', 'it'] as const
-type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
-
-type Translation = {
-  [locale in SupportedLocale]: {
-    [enumValue: string]: string
-  }
-}
-
-function isTranslation(translation: any, enumValues: string[]): translation is EnumDartComment {
-  return SUPPORTED_LOCALES.map(
-    (v) =>
-      v in translation &&
-      Object.keys(translation[v]).filter((k) => enumValues.indexOf(k) == -1).length === 0
-  ).every((b) => b)
-}
-
-interface EnumDartComment {
-  translation: Translation
-}
-
-function isEnumDartComment(comment: any, enumValues: string[]): comment is EnumDartComment {
-  if (!('translation' in comment)) {
-    return false
-  }
-  return isTranslation(comment['translation'], enumValues)
-}
-
 class EnumDartConstruct implements DartType, Declarable {
   originalName: string
   values: string[]
-  comment: EnumDartComment | null = null
 
   constructor(name: string, values: string[], comment: string | null) {
     this.originalName = name
     this.values = values
-    if (comment !== null) {
-      const parsedComment = JSON.parse(comment)
-      if (isEnumDartComment(parsedComment, values)) {
-        this.comment = parsedComment
-      } else {
-        console.log(`Instatiating ${name}: comment ${comment} is not a valid enum comment`)
-      }
-    }
   }
 
   generateType(): string {
@@ -217,7 +179,7 @@ class EnumDartConstruct implements DartType, Declarable {
   }
 
   generateDeclaration(): string {
-    return `enum ${formatForDartClassName(this.originalName)}${this.comment !== null ? ' implements Translatable ' : ' '}{
+    return `enum ${formatForDartClassName(this.originalName)} {
 ${this.values.map((v) => `  ${formatForDartPropertyName(v)}`).join(',\n')};
 
   String toJson() {
@@ -244,32 +206,6 @@ ${this.values
     }
     throw ArgumentError.value(name, "name", "No enum value with that name");
   }
-
-${
-  this.comment !== null
-    ? `
-  String translate(Locale locale) {
-    if(![${Object.keys(this.comment.translation)
-      .map((locale) => `'${locale}'`)
-      .join(',')}].contains(locale.languageCode)) {
-      return name;
-    }
-    switch(this) {${this.values
-      .map(
-        (v) => `
-      case ${formatForDartClassName(this.originalName)}.${formatForDartPropertyName(v)}: 
-        return {${SUPPORTED_LOCALES.map(
-          (locale) => `
-          '${locale}': '${this.comment!.translation[locale as SupportedLocale][v]}'`
-        ).join(',')}
-        }[locale.languageCode]!;`
-      )
-      .join('')}
-    }
-  }
-`
-    : ''
-}
 }
 `
   }
@@ -729,12 +665,6 @@ export const apply = ({ schemas, tables, views, columns, types }: GeneratorMetad
     .map((view) => new ClassDartConstruct(view.name, ['Select'], columnsByTableId[view.id], ptdMap))
 
   let result = `
-import 'dart:ui';
-
-abstract interface class Translatable {
-  String translate(Locale locale);
-}
-
 Duration parsePostgresInterval(String interval) {
   // Regular expression to match HH:MM:SS[.NNNNNN] format
   final regex = RegExp(r'^(\d+):(\d+):(\d+)(?:\.(\d+))?$');
