@@ -300,6 +300,7 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
 }
 
 class ClassDartConstruct implements Declarable {
+  rowableName: string
   className: string
   operations: Operation[]
   columns: PostgresColumn[]
@@ -311,6 +312,7 @@ class ClassDartConstruct implements Declarable {
     columns: PostgresColumn[],
     ptdMap: PostgresToDartMap
   ) {
+    this.rowableName = rowableName
     this.className = `${formatForDartClassName(rowableName)}Row`
     this.operations = operations
     this.columns = columns
@@ -318,7 +320,9 @@ class ClassDartConstruct implements Declarable {
   }
 
   generateDeclaration(): string {
-    return `class ${this.className} {${this.columns
+    return `class ${this.className} {
+  static const tableName = '${this.rowableName}';
+  ${this.columns
       .map((column) => {
         return `
   final ${buildDartTypeFromPostgresColumn(column, this.ptdMap).generateType()} ${formatForDartPropertyName(column.name)};`
