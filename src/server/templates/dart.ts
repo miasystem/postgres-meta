@@ -429,6 +429,7 @@ const PGTYPE_TO_DARTTYPE_MAP: Record<string, DartType> = {
   text: new BuiltinDartType('String'),
   varchar: new BuiltinDartType('String'),
   jsonb: new MapDartType(new BuiltinDartType('String'), new BuiltinDartType('dynamic')),
+  json: new MapDartType(new BuiltinDartType('String'), new BuiltinDartType('dynamic')),
   regclass: new BuiltinDartType('String'),
 }
 
