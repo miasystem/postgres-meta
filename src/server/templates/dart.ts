@@ -227,7 +227,7 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
   }
 
   generateDeclaration(): string {
-    return `class ${this.name} {${this.postgresType.attributes.map(
+    return `class ${this.name} implements JsonSerializable {${this.postgresType.attributes.map(
       (attr) => `
   final ${new NullDartType(this.ptdMap[attr.type_id][1]).generateType()} ${formatForDartPropertyName(attr.name)};`
     ).join('')}
@@ -254,6 +254,7 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
     .join(',')}
   };
 
+  @override
   Map<String, dynamic> toJson() => _generateMap(${this.postgresType.attributes
     .map((attr) => {
       return `
@@ -278,6 +279,7 @@ class ClassDartConstructForCompositeType implements DartType, Declarable {
     );
   }
 
+  @override
   factory ${this.name}.fromJson(Map<String, dynamic> jsonObject) {
     return ${this.name}(${this.postgresType.attributes
       .map((attr) => {
@@ -320,7 +322,7 @@ class ClassDartConstruct implements Declarable {
   }
 
   generateDeclaration(): string {
-    return `class ${this.className} {
+    return `class ${this.className} implements JsonSerializable {
   static const tableName = '${this.rowableName}';
   ${this.columns
       .map((column) => {
@@ -351,6 +353,7 @@ class ClassDartConstruct implements Declarable {
     .join(',')}
   };
 
+  @override
   Map<String, dynamic> toJson() => _generateMap(${this.columns
     .map((column) => {
       return `
@@ -359,6 +362,7 @@ class ClassDartConstruct implements Declarable {
     .join(',')}
   );
 
+  @override
   factory ${this.className}.fromJson(Map<String, dynamic> jsonObject) {
     return ${this.className}(${this.columns
       .map((column) => {
@@ -451,7 +455,7 @@ class ClassDartConstructForJsonschema implements DartType, Declarable {
   }
 
   generateDeclaration(): string {
-    return `class ${this.name} {${Object.entries(this.props).map(([name, [pgType, dartType]]) => `
+    return `class ${this.name} implements JsonSerializable {${Object.entries(this.props).map(([name, [pgType, dartType]]) => `
   final ${dartType.generateType()} ${formatForDartPropertyName(name)};`
     ).join('')}
 
@@ -474,6 +478,7 @@ class ClassDartConstructForJsonschema implements DartType, Declarable {
     .join(',')}
   };
 
+  @override
   Map<String, dynamic> toJson() => _generateMap(${Object.entries(this.props).map(([name, [pgType, dartType]]) => {
       return `
     ${formatForDartPropertyName(name)}: ${formatForDartPropertyName(name)}`
@@ -481,6 +486,7 @@ class ClassDartConstructForJsonschema implements DartType, Declarable {
     .join(',')}
   );
 
+  @override
   factory ${this.name}.fromJson(Map<String, dynamic> jsonObject) {
     return ${this.name}(${Object.entries(this.props).map(([name, [pgType, dartType]]) => {
         return `
@@ -843,6 +849,16 @@ Duration parsePostgresInterval(String interval) {
     seconds: seconds,
     microseconds: microseconds,
   );
+}
+
+abstract class JsonSerializable {
+  Map<String, dynamic> toJson();
+
+  // We can't declare a constructor in an interface, but we can declare
+  // a factory constructor that implementing classes must provide
+  factory JsonSerializable.fromJson(Map<String, dynamic> json) {
+    throw UnimplementedError();
+  }
 }
 
 ${declarableTypes
