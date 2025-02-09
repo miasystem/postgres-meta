@@ -824,30 +824,22 @@ export const apply = ({ schemas, tables, views, columns, types }: GeneratorMetad
 
   let result = `
 Duration parsePostgresInterval(String interval) {
-  // Regular expression to match HH:MM:SS[.NNNNNN] format
-  final regex = RegExp(r'^(\d+):(\d+):(\d+)(?:\.(\d+))?$');
+  // Regular expression to match HH:MM:SS format
+  final regex = RegExp(r'^([0-9]{2}):([0-5][0-9]):([0-5][0-9])$');
   final match = regex.firstMatch(interval);
   
   if (match == null) {
-    throw FormatException('Invalid interval format. Expected HH:MM:SS[.NNNNNN]');
+    throw FormatException('Invalid interval format. Expected HH:MM:SS');
   }
 
   final hours = int.parse(match.group(1)!);
   final minutes = int.parse(match.group(2)!);
   final seconds = int.parse(match.group(3)!);
-  
-  // Handle microseconds if present
-  var microseconds = 0;
-  if (match.group(4) != null) {
-    String microsStr = match.group(4)!.padRight(6, '0').substring(0, 6);
-    microseconds = int.parse(microsStr);
-  }
 
   return Duration(
     hours: hours,
     minutes: minutes,
     seconds: seconds,
-    microseconds: microseconds,
   );
 }
 
